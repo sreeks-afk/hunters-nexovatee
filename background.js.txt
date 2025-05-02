@@ -1,0 +1,77 @@
+// background.js
+
+const urlCache = new Map();
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "verifyURL") {
+    const url = request.url;
+
+    // Check cache first
+    if (urlCache.has(url)) {
+      sendResponse(urlCache.get(url));
+      updateStats(urlCache.get(url));
+      return;
+    }
+
+    // Get user settings from storage
+    chrome.storage.sync.get({
+      apiProvider: "phishtank",
+      strictMode: "normal"
+    }, async (settings) => {
+      const result = await checkURLWithProvider(url, settings);
+      urlCache.set(url, result);
+      sendResponse(result);
+      updateStats(result);
+    });
+
+    return true; // keep message channel open
+  }
+});
+
+// Unified handler based on provider
+async function checkURLWithProvider(url, settings) {
+  try {
+    if (settings.apiProvider === "phishtank") {
+      return await checkPhishTank(url);
+    } else if (settings.apiProvider === "openphish") {
+      // Placeholder: OpenPhish may not have a public API
+      return { isPhishing: false, details: "OpenPhish support coming soon" };
+    }
+  } catch (error) {
+    console.error("Error checking URL:", error);
+  }
+
+  return { isPhishing: false, details: "Verification failed" };
+}
+
+async function checkPhishTank(url) {
+  try {
+    const apiUrl = `https://checkurl.phishtank.com/checkurl/?url=${encodeURIComponent(url)}&format=json`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    if (data.results.valid) {
+      const isPhishing = data.results.in_database;
+      return {
+        isPhishing,
+        details: isPhishing ? `Reported phishing (Verified: ${data.results.verified_at})` : 'No threats found'
+      };
+    }
+  } catch (err) {
+    console.error("PhishTank error:", err);
+  }
+
+  return { isPhishing: false, details: "Unable to verify" };
+}
+
+// Update user stats
+function updateStats(result) {
+  chrome.storage.local.get(['linksChecked', 'threatsBlocked'], (stats) => {
+    const newStats = {
+      linksChecked: (stats.linksChecked || 0) + 1,
+      threatsBlocked: (stats.threatsBlocked || 0) + (result.isPhishing ? 1 : 0),
+      lastChecked: new Date().toLocaleString()
+    };
+    chrome.storage.local.set(newStats);
+  });
+}
