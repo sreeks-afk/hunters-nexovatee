@@ -1,0 +1,55 @@
+:root {
+  --danger: #e53e3e;
+  --safe: #38a169;
+  --text-light: #a0aec0;
+  --background: #2d3748;
+  --foreground: #ffffff;
+}
+
+.quickphish-link {
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+.quickphish-tooltip {
+  position: fixed !important;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  padding: 12px 16px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  z-index: 2147483647 !important; /* Maximum z-index to ensure visibility */
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.4s ease, visibility 0.4s ease !important;
+  min-width: 240px !important;
+  max-width: 340px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  white-space: normal !important;
+  pointer-events: none !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.quickphish-tooltip.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.quickphish-tooltip span.quickphish-status {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
+}
+
+.quickphish-tooltip small.quickphish-details {
+  display: block !important;
+  color: var(--text-light) !important;
+  font-size: 12px !important;
+  white-space: normal !important;
+  overflow-wrap: break-word !important;
+}
